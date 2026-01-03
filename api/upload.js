@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export default async function handler(req, res) {
     if (req.method !== "POST") {
@@ -12,13 +11,12 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Dados inválidos" });
     }
 
-    const dir = "/tmp/transcripts";
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    const filePath = path.join(dir, filename);
-    fs.writeFileSync(filePath, content, "utf-8");
+    const blob = await put(filename, content, {
+        access: "public",
+        contentType: "text/html"
+    });
 
     return res.json({
-        url: `https://${req.headers.host}/api/view?file=${filename}`
+        url: blob.url
     });
 }
